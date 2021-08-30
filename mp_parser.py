@@ -1,4 +1,3 @@
-from os import X_OK
 from queue import Queue
 
 """
@@ -98,6 +97,7 @@ class mesh():
 
     # Constructor
     def __init__(self, dx, dy = None, dz = None):
+        self.delta = dx
         self.dx = dx
         self.dy = dx if dy == None else dy
         self.dz = dx if dz == None else dz
@@ -107,8 +107,12 @@ class mesh():
     def __fillNodes(self):
         domainDict  = domain(self.__defineBorder(self.__defineCorner()))
         centroid    = (int((self.x/self.dx)/2), int((self.y/self.dy)/2))
-        self.nodes  = floodFill(centroid, domainDict)
-        self.nodes.sort(key = lambda x : (x[1], x[0]))
+        nodes       = floodFill(centroid, domainDict)
+        nodes.sort(key = lambda x : (x[1], x[0]))
+        self.ints   = nodes[:]
+        self.nodes  = nodes[:]
+        for key, ele in enumerate(self.nodes):
+            self.nodes[key] = [item*self.delta for item in ele]
         return self.nodes
 
     def __defineBorder(self, corners):
@@ -129,14 +133,14 @@ class mesh():
 
     def __setCell(self):
         self.cell = []
-        for node in self.nodes:
+        for node in self.ints:
             try:
                 self.cell.append(
                     (
-                        self.nodes.index(node),
-                        self.nodes.index((node[0] + 1, node[1])),
-                        self.nodes.index((node[0] + 1, node[1] + 1)),
-                        self.nodes.index((node[0], node[1] + 1))
+                        self.ints.index(node),
+                        self.ints.index((node[0] + 1, node[1])),
+                        self.ints.index((node[0] + 1, node[1] + 1)),
+                        self.ints.index((node[0], node[1] + 1))
                     )
                 )
             except:
@@ -155,13 +159,16 @@ class mesh():
 
     def printFile(self, fileName = 'mesh', digits = 0):
         with open(f'result/{fileName}.txt', 'w') as f:
-            f.write(f'# {len(self.nodes)} nodes, {len(self.cell)} cells\n')
-            f.write('\n# Nodes\n')
+            f.write(f'! {len(self.nodes)} nodes, {len(self.cell)} cells\n')
+            f.write(f'\n{len(self.nodes)} \t{len(self.cell)}\n')
+            # f.write('\n! Nodes\n')
             for i in self.nodes:
-                f.write(''.join([f'{f"{j*self.dx:.{digits}f}":>7}' for j in i]) + '\n')
-            f.write('\n# Cells\n')
+                f.write(' '.join([f'{j:.{digits}f}' for j in i]) + '\n')
+                # f.write(''.join([f'{f"{j:.{digits}f}":>7}' for j in i]) + '\n')
+            # f.write('\n! Cells\n')
             for i in self.cell:
-                f.write(''.join([f'{str(j):>7}' for j in i]) + '\n')
+                f.write(' '.join([f'{j}' for j in i]) + '\n')
+                # f.write(''.join([f'{str(j):>7}' for j in i]) + '\n')
 
 """
 particle Class
@@ -197,6 +204,8 @@ class particle():
         centroid    = (int(sum(x)/len(x)), int(sum(y)/len(y))) if intPoint == None else intPoint
         self.nodes  = floodFill(centroid, domainDict)
         self.nodes.sort(key = lambda x : (x[1], x[0]))
+        for key, ele in enumerate(self.nodes):
+            self.nodes[key] = [item*self.delta for item in ele]
         return self.nodes
     
 
@@ -204,13 +213,19 @@ class particle():
     def setPoints(self, pointList):
         self.__defineBorders(pointList)
 
+    def translate(self, x, y):
+        displacements = (x, y)
+        for key, ele in enumerate(self.nodes):
+            self.nodes[key] = [item + d for item, d in zip(ele, displacements)]
+
     def rotate(self, tetha):
         pass
 
     def printFile(self, fileName = 'Particles', digits = 0, spacing = 7):
         with open(f'result/{fileName}.txt', 'w') as f:
-            f.write(f'# {len(self.nodes)} particle(s)')
+            f.write(f'! {len(self.nodes)} particle(s) \n')
+            f.write(f'{len(self.nodes)} \n')
             for i in self.nodes:
-                f.write(''.join([f'{f"{j*self.delta:.{digits}f}":>{spacing}}' for j in i]) + '\n')
+                f.write(' '.join([f'{f"{j:.{digits}f}":>{spacing}}' for j in i]) + '\n')
     
     
