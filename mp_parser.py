@@ -1,4 +1,6 @@
 from queue import Queue
+import os
+
 
 """
 Bresenham Algothms for drawing lines
@@ -157,8 +159,16 @@ class mesh():
     def rotateMesh(self, tetha):
         pass
 
-    def printFile(self, fileName = 'mesh', digits = 0):
-        with open(f'result/{fileName}.txt', 'w') as f:
+    def printFile(self, fileName = 'mesh', folderName = "project", digits = 0):
+        path = f"result/{folderName}"
+        try:
+            os.mkdir(path)
+        except OSError:
+            print ("Path %s existed already, continue with writting files" % path)
+        else:
+            print ("Successfully created the directory %s " % path)
+            
+        with open(f'{path}/{fileName}.txt', 'w') as f:
             f.write(f'! {len(self.nodes)} nodes, {len(self.cell)} cells\n')
             f.write(f'\n{len(self.nodes)} \t{len(self.cell)}\n')
             # f.write('\n! Nodes\n')
@@ -221,8 +231,16 @@ class particle():
     def rotate(self, tetha):
         pass
 
-    def printFile(self, fileName = 'Particles', digits = 0, spacing = 7):
-        with open(f'result/{fileName}.txt', 'w') as f:
+    def printFile(self, fileName = 'Particles', folderName = "project", digits = 0, spacing = 7):
+        path = f"result/{folderName}"
+        try:
+            os.mkdir(path)
+        except OSError:
+            print ("Path %s existed already, continue with writting files" % path)
+        else:
+            print ("Successfully created the directory %s " % path)
+            
+        with open(f'{path}/{fileName}.txt', 'w') as f:
             f.write(f'! {len(self.nodes)} particle(s) \n')
             f.write(f'{len(self.nodes)} \n')
             for i in self.nodes:
